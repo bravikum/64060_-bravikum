@@ -1,0 +1,65 @@
+---
+title: "Assignment 1"
+author: "Balaji Ravi Kumar"
+date: "1/30/2022"
+
+---
+
+```{r setup}
+
+
+
+#Housing
+
+#datasource -https://www.kaggle.com/thorgodofthunder/housing-simple-regression
+
+
+#Importing the Dataset into R
+
+library(readr)
+
+housing<-read_csv("Housing.csv")
+
+#descriptive statistics
+
+library(dplyr)
+
+count(housing,bedrooms)
+
+count(housing,stories)
+
+mean(housing$area)
+
+sd(housing$area)
+
+min(housing$area)
+
+max(housing$area)
+
+#datavisualization, Barchat with number of bedrooms with it's furnishing status
+
+library(lessR)
+
+BarChart(bedrooms,data=housing,by=furnishingstatus)
+
+#transforming variable
+
+summary(housing$price)
+
+summary(sqrt(housing$price))
+
+#scatterplot for area and price of the housing
+
+library(lessR)
+
+x=housing$area
+
+y=housing$price
+
+plot(x,y,main="area and price",xlab="area",ylab="price")
+
+
+#conclusion with the plot, the price of the housing partially depend on the area and mostly depends on the amenities provided.
+
+
+
