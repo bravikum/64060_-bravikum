@@ -1,8 +1,9 @@
 ---
-/title: Assignment2
+title: Assignment2
 author: "Balaji Ravi Kumar"
 date: "20/02/2022"
 output:
+  
   pdf_document: default
   html_document:
     df_print: paged
@@ -16,44 +17,49 @@ library(dplyr)
 library(class)
 
 #Importing the dataset
-universalbank <-read.csv("UniversalBank.csv")
+UniversalBank <- read.csv("E:/ML/UniversalBank.csv", sep = ',' )
 
 #Previewing data
-head(universalbank)
+head(UniversalBank)
 
-#Dataframe Structure
-str(universalbank)
+#Data frame Structure
+str(UniversalBank)
 
 #Descriptive Statistics
-summary(universalbank)
+summary(UniversalBank)
 ```
 
 ```{r}
 
 #Removing unwanted data from the dataset
 
-universalbank$ID<-NULL
-universalbank$ZIP.Code<-NULL
-universalbank$Personal.Loan=as.factor(universalbank$Personal.Loan)
-summary(universalbank)
+UniversalBank$ID <- NULL
+UniversalBank$ZIP.Code <- NULL
+summary(UniversalBank)
+UniversalBank$Personal.Loan =  as.factor(UniversalBank$Personal.Loan)
 ```
 ```{r}
 #Normalization
-normalization <- preProcess(universalbank[, -8],method = c("center", "scale"))
-Bank_normalized <- predict(normalization,universalbank)
+NOrmalization <- preProcess(UniversalBank[, -8],method = c("center", "scale"))
+Bank_normalized <- predict(NOrmalization,UniversalBank)
 summary(Bank_normalized)
 ```
+
 ```{r}
-#Predicting the output with the given values with a partition training data 60% and testing data 40%
+#1 Question 1 Partition of data(Train=60%,Test=40%) and prediciting the model with the given values
+
+Train_index <- createDataPartition(UniversalBank$Personal.Loan, p = 0.6, list = FALSE)
+train.df = Bank_normalized[Train_index,]
+validation.df = Bank_normalized[-Train_index,]
 
 To_Predict = data.frame(Age = 40, Experience = 10, Income = 84, Family = 2,
                         CCAvg = 2, Education = 1, Mortgage = 0, Securities.Account =
                           0, CD.Account = 0, Online = 1, CreditCard = 1)
 print(To_Predict)
-To_Predict_Normalized <- predict(normalization,To_Predict)
+To_Predict_Normalization <- predict(NOrmalization,To_Predict)
 
 Prediction <- knn(train= train.df[,1:7,9:12],
-                  test = To_Predict_Normalized[,1:7,9:12],
+                  test = To_Predict_Normalization[,1:7,9:12],
                   cl= train.df$Personal.Loan,
                   k=1)
 print(Prediction)
@@ -80,37 +86,39 @@ knn.model
 predictions <- predict(knn.model,validation.df)
 
 confusionMatrix(predictions,validation.df$Personal.Loan)
-#The matrix has a 95.1% accuracy.
+#This matrix has 95.1% accuracy.
 ```
 
 ```{r}
 #Question 4
 
-To_Predict_Normalized = data.frame(Age = 40, Experience = 10, Income = 84, Family = 2,
-                                   CCAvg = 2, Education = 1, Mortgage = 0,
-                                   Securities.Account =0, CD.Account = 0, Online = 1,
-                                   CreditCard = 1)
-To_Predict_Normalized = predict(normalization, To_Predict)
-predict(knn.model, To_Predict_Normalized)
-
+Normalization = data.frame(Age = 40, Experience = 10, Income = 84, Family = 2,
+                           CCAvg = 2, Education = 1, Mortgage = 0,
+                           Securities.Account =0, CD.Account = 0, Online = 1,
+                           CreditCard = 1)
+To_Predict_Normalization = predict(NOrmalization, To_Predict)
+predict(knn.model, To_Predict_Normalization)
 
 
 ```
 
 ```{r}
+
 #Question 5 Partition into training=50%, Validation=30%,Test=20%
+
+
 train_size = 0.5
-Train_index = createDataPartition(universalbank$Personal.Loan, p = 0.5, list = FALSE)
+Train_index = createDataPartition(UniversalBank$Personal.Loan, p = 0.5, list = FALSE)
 train.df = Bank_normalized[Train_index,]
 
 
 test_size = 0.2
-Test_index = createDataPartition(universalbank$Personal.Loan, p = 0.2, list = FALSE)
+Test_index = createDataPartition(UniversalBank$Personal.Loan, p = 0.2, list = FALSE)
 Test.df = Bank_normalized[Test_index,]
 
 
 valid_size = 0.3
-Validation_index = createDataPartition(universalbank$Personal.Loan, p = 0.3, list = FALSE)
+Validation_index = createDataPartition(UniversalBank$Personal.Loan, p = 0.3, list = FALSE)
 validation.df = Bank_normalized[Validation_index,]
 
 
@@ -123,7 +131,7 @@ confusionMatrix(Testknn, Test.df[,8])
 confusionMatrix(Trainknn, train.df[,8])
 confusionMatrix(Validationknn, validation.df[,8])
 
-#From the confusion matrices the accuracies are Training: 97.92%; Validation: 95.33%; and Test: 95.8%. From this comparision we can understand that the accuracy of Training is more than Test and Validation. Hence  we have the best training model
+#By comparing the confusion matrix of test,train and validation data we can understand that the accuracy of Training is more than Test and Validation. Hence  we have the best training model
 ```
 
 
