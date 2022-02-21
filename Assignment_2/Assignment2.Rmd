@@ -1,0 +1,129 @@
+---
+/title: Assignment2
+author: "Balaji Ravi Kumar"
+date: "20/02/2022"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r}
+#Loading libraries required for the project
+library(caret)
+library(ISLR)
+library(dplyr)
+library(class)
+
+#Importing the dataset
+universalbank <-read.csv("UniversalBank.csv")
+
+#Previewing data
+head(universalbank)
+
+#Dataframe Structure
+str(universalbank)
+
+#Descriptive Statistics
+summary(universalbank)
+```
+
+```{r}
+
+#Removing unwanted data from the dataset
+
+universalbank$ID<-NULL
+universalbank$ZIP.Code<-NULL
+universalbank$Personal.Loan=as.factor(universalbank$Personal.Loan)
+summary(universalbank)
+```
+```{r}
+#Normalization
+normalization <- preProcess(universalbank[, -8],method = c("center", "scale"))
+Bank_normalized <- predict(normalization,universalbank)
+summary(Bank_normalized)
+```
+```{r}
+#Predicting the output with the given values with a partition training data 60% and testing data 40%
+
+To_Predict = data.frame(Age = 40, Experience = 10, Income = 84, Family = 2,
+                        CCAvg = 2, Education = 1, Mortgage = 0, Securities.Account =
+                          0, CD.Account = 0, Online = 1, CreditCard = 1)
+print(To_Predict)
+To_Predict_Normalized <- predict(normalization,To_Predict)
+
+Prediction <- knn(train= train.df[,1:7,9:12],
+                  test = To_Predict_Normalized[,1:7,9:12],
+                  cl= train.df$Personal.Loan,
+                  k=1)
+print(Prediction)
+
+ 
+```
+
+```{r}
+#Question 2
+set.seed(123)
+Bankcontrol <- trainControl(method= "repeatedcv", number = 3, repeats = 2)
+searchGrid = expand.grid(k=1:10)
+
+knn.model = train(Personal.Loan~., data = train.df, method = 'knn', tuneGrid = searchGrid,trControl = Bankcontrol)
+
+knn.model
+
+```
+
+```{r}
+
+#Question 3 confusion matrix
+
+predictions <- predict(knn.model,validation.df)
+
+confusionMatrix(predictions,validation.df$Personal.Loan)
+#The matrix has a 95.1% accuracy.
+```
+
+```{r}
+#Question 4
+
+To_Predict_Normalized = data.frame(Age = 40, Experience = 10, Income = 84, Family = 2,
+                                   CCAvg = 2, Education = 1, Mortgage = 0,
+                                   Securities.Account =0, CD.Account = 0, Online = 1,
+                                   CreditCard = 1)
+To_Predict_Normalized = predict(normalization, To_Predict)
+predict(knn.model, To_Predict_Normalized)
+
+
+
+```
+
+```{r}
+#Question 5 Partition into training=50%, Validation=30%,Test=20%
+train_size = 0.5
+Train_index = createDataPartition(universalbank$Personal.Loan, p = 0.5, list = FALSE)
+train.df = Bank_normalized[Train_index,]
+
+
+test_size = 0.2
+Test_index = createDataPartition(universalbank$Personal.Loan, p = 0.2, list = FALSE)
+Test.df = Bank_normalized[Test_index,]
+
+
+valid_size = 0.3
+Validation_index = createDataPartition(universalbank$Personal.Loan, p = 0.3, list = FALSE)
+validation.df = Bank_normalized[Validation_index,]
+
+
+
+Testknn <- knn(train = train.df[,-8], test = Test.df[,-8], cl = train.df[,8], k =3)
+Validationknn <- knn(train = train.df[,-8], test = validation.df[,-8], cl = train.df[,8], k =3)
+Trainknn <- knn(train = train.df[,-8], test = train.df[,-8], cl = train.df[,8], k =3)
+#displaying the confusion matrices
+confusionMatrix(Testknn, Test.df[,8])
+confusionMatrix(Trainknn, train.df[,8])
+confusionMatrix(Validationknn, validation.df[,8])
+
+#From the confusion matrices the accuracies are Training: 97.92%; Validation: 95.33%; and Test: 95.8%. From this comparision we can understand that the accuracy of Training is more than Test and Validation. Hence  we have the best training model
+```
+
+
