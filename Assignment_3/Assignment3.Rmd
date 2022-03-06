@@ -1,0 +1,103 @@
+---
+title: "Assignment3"
+author: "Balaji Ravi Kumar"
+date: "06/03/2022"
+output:
+  html_document: default
+  pdf_document: default
+---
+```{r}
+#Loading required Packages
+library(caret)
+library(e1071)
+library(reshape2)
+library(reshape)
+
+#importing dataset into R
+UB <- read.csv("Universalbank.csv")
+head(UB) 
+tail(UB)
+summary(UB)
+
+#Converting data into factors
+
+UB$Personal.Loan <- factor(UB$Personal.Loan)
+UB$Online <- factor(UB$Online)
+UB$CreditCard <- factor(UB$CreditCard)
+df<- UB
+
+```
+
+```{r}
+
+#Task 1 #Creating a pivot table for the training data with Online as a column variable, CC as a row variable, and Loan as a secondary row variable
+
+#partitioning data into 60% training and 40% Validation
+set.seed(64060)
+Train_index <- createDataPartition(df$Personal.Loan, p = 0.6, list = FALSE)
+train.df = df[Train_index,]
+validation.df = df[-Train_index,]
+
+pivottable <- xtabs(~ CreditCard + Online + Personal.Loan , data = train.df)
+ftable(pivottable)
+```
+```{r}
+#Task2 calculate the probability that the customer will accept the loan offer(Loan=1, CC=1, Online=1)
+p <- 59/(59+479)
+p
+```
+
+```{r}
+#TASK3 creating two separate pivot tables for the training data 
+
+table(Personal.Loan = train.df$Personal.Loan, Online = train.df$Online)
+
+table(Personal.Loan = train.df$Personal.Loan, CreditCard = train.df$CreditCard)
+table(Personal.Loan = train.df$Personal.Loan)
+
+#TASK4
+
+#i. P(CC = 1 | Loan = 1) (the proportion of credit card holders among the loan acceptors) 
+P1 <- 93/(93+195)
+P1
+
+#ii. P(Online = 1 | Loan = 1)  
+P2 <- 179/(179+109)
+P2
+
+#iii. P(Loan = 1) (the proportion of loan acceptors)  
+P3 <- 288/(288+2712)
+P3
+#iv. P(CC = 1 | Loan = 0)  
+P4 <- 788/(788+1924)
+P4
+
+#v. P(Online = 1 | Loan = 0) 
+P5 <- 1631/(1631+1081)
+P5
+
+#vi. P(Loan = 0) 
+P6 <- 2712/(2712+288)
+P6
+
+#TASK5 Using the above computed quantities to compute the naive Bayes probability P(Loan = 1 | CC = 1, Online = 1)
+
+Task5 <- (P1*P2*P3)/
+((P1*P2*P3) +(P4*P5*P6))
+                                                                    
+Task5 
+
+```
+
+```{r}
+#Task 6
+#Values that we got from Task2 (0.1096654) and Task5 (0.1087106) are almost same. The difference between the exact method and the naive-baise method is that the exact method would need the the exact same independent variable classifications to predict, where the naive bayes method does not.
+
+
+#Task 7
+naivebayes_model <- naiveBayes(Personal.Loan~ Online + CreditCard, data = train.df)
+To_Predict<-data.frame(Online=1, CreditCard= 1)
+predict(naivebayes_model, To_Predict,type = 'raw')
+
+#The naivebayes is almost the same output we got in the manual calculation method(Task5)
+```
