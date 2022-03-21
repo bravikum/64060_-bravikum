@@ -1,0 +1,137 @@
+---
+title: "Assignment 4"
+author: "Balaji Ravi Kumar"
+date: "19/03/2022"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r}
+#loading libraries required for the assignment
+library(tidyverse)
+library(factoextra)
+library(cluster)
+library(ggplot2)
+library(gridExtra)
+library(readr)
+#importing dataset into R
+pharmaceuticals<-read.csv("Pharmaceuticals.csv")
+summary(pharmaceuticals)
+
+
+```
+
+```{r}
+# a. Use only the numerical variables (1 to 9) to cluster the 21 firms. Justify the various choices made in conducting the cluster analysis, such as weights for different variables, the specific clustering algorithm(s) used, the number of clusters formed, and so on. 
+
+# removeing any missing value(NA) that might be present in the Pharmaceutical data and selecting numerical data
+pharmaceuticals1 <- na.omit(pharmaceuticals)
+pharmaceuticals1
+row.names(pharmaceuticals1)<- pharmaceuticals1[,1]
+pharmadata<- pharmaceuticals1[, 3:11]
+head(pharmadata)
+```
+
+
+```{r}
+# Scaling the Pharmadata using the scale function
+pharmascale <- scale(pharmadata)
+head(pharmascale)
+```
+
+```{r}
+#Determining the number of clusters by cluster analysis using Elbow and Silhouette Method
+
+fviz_nbclust(pharmascale, kmeans, method = "wss") + labs(subtitle = "Elbow Method")
+
+
+
+fviz_nbclust(pharmascale, kmeans, method = "silhouette")+ labs(subtitle = "Silhouette Method")
+
+
+
+```
+
+
+```{r}
+#From the above plots, it is clear that the no of clusters are 5 and they are enough to
+#show the variations that are present in the data
+
+set.seed(64060)
+#Applying kmean
+kmeans5<- kmeans(pharmascale,centers=5,nstart = 25)
+
+#Visualizing the output
+
+#centroids
+
+kmeans5$centers
+fviz_cluster(kmeans5,data = pharmascale) # to Visualize the clusters
+kmeans5
+distance<- dist(pharmascale, method = "euclidean")
+fviz_dist(distance)
+```
+
+```{r}
+#K-Means Cluster Analysis Fitting the data with 5 clusters
+
+clusterfit<-kmeans(pharmascale,5)
+
+
+#Finding the mean value of all quantitative variables for each cluster
+
+aggregate(pharmascale,by=list(clusterfit$cluster),FUN=mean)
+
+pharmadata1<-data.frame(pharmascale,clusterfit$cluster)
+pharmadata1
+View(pharmadata1)
+
+## Final analysis and Extracting results using 5 clusters and Visualize the results
+
+
+clusplot(pharmascale,clusterfit$cluster,color = TRUE,shade = TRUE,labels = 2,lines = 0)
+```
+
+
+
+#b Interpret the clusters with respect to the numerical variables used in forming the clusters
+```{r}
+Pharma_Cluster <- pharmaceuticals[,c(12,13,14)]%>% mutate(clusters = clusterfit$cluster)%>% arrange(clusters, ascending = TRUE)
+Pharma_Cluster
+
+
+#Cluster1 - JNJ,MRK,GSK,PFE 
+
+#Cluster2 - AHM,AVE,WPI 
+
+#Cluster3 - IVX,MRX,ELN,CHTT
+
+#Cluster4 - AGN,PHA,BAY 
+
+#Cluster5 - ABT,NVS,AZN,LLY,BMY,WYE,SGP
+
+```
+
+
+# c)Is there a pattern in the clusters with respect to the numerical variables (10 to 12)? (those not used in forming the clusters)
+#There is a pattern in the clusters with respect to the recommendation variable.
+#Cluster 1 , which has the highest Market capitalization, highest ROA, highest ROE and high Asset_Turnover has no median sales recommendations.Cluster 1 has equal hold and Moderate buy recommendation.
+#Cluster 2, with the highest Revenue growth has Lowest P/E Ratio and lowest Asset turn over has hold recommendation.
+#Cluster 3, which has highest Beta and levrage with lowest Market capitalization,lowest ROE, ROA, Leverage, revenue growth and net profit margin has hold recommendation
+#Cluster 4, with highest P/E ration and lowest leverage and asset turnover has hold recommendation
+#Cluster 5, which has the highest net profit margin with lowest leverage and beta has mostly hold recommendation.
+
+# d)Provide an appropriate name for each cluster using any or all of the variables in the dataset.
+
+Cluster-1 - Hold cluster.
+
+Cluster-2 - Hold cluster.
+
+Cluster-3 - Buy Cluster.
+
+Cluster-4 - High Hold cluster
+
+Cluster-5 - High Hold cluster
+
+
